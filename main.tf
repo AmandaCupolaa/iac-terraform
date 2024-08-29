@@ -12,3 +12,49 @@ terraform {
 provider "aws" {
   region = "us-east-1"
 }
+resource "aws_instance" "ec2-iac-aula2" {
+   ami = "ami-0e86e20dae9224db8"
+   instance_type = "t2.micro"
+
+   tags = {
+     Name= "ec2-iac-aula2"
+   }
+
+   ebs_block_device {
+     device_name = "/dev/sda1"
+     volume_size = 30
+     volume_type = "gp3"
+   }
+
+   security_groups = [aws_security_group.sg_aula_iac.name, "default"]
+
+   key_name = "aula_iac"
+
+    // caso queira indicar uma subnet da AWS
+    #  subnet_id = "id de vpc exixtente"
+
+    // assim é caso queira indicar uma subnet criada em arquivos .tf
+    subnet_id = aws_subnet.minha_subrede.id
+}
+
+variable "porta_http" {
+  description = "porta http"
+  default = 80
+  type = number
+}
+
+resource "aws_security_group" "sg_aula_iac" {
+  name = "sg_aula_iac"
+
+  ingress {
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+}
+
+resource "aws_subnet" "minha_subrede" {
+  vpc_id = "id da vpc"
+  cidr_block = "10.10.10.0/24"
+}
