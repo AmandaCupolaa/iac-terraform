@@ -12,12 +12,13 @@ terraform {
 provider "aws" {
   region = "us-east-1"
 }
-resource "aws_instance" "ec2-iac-aula2" {
+
+resource "aws_instance" "ec2_iac_pri_ex1" {
    ami = "ami-0e86e20dae9224db8"
    instance_type = "t2.micro"
 
    tags = {
-     Name= "ec2-iac-aula2"
+     Name= "ec2_iac_pri_ex1"
    }
 
    ebs_block_device {
@@ -26,35 +27,57 @@ resource "aws_instance" "ec2-iac-aula2" {
      volume_type = "gp3"
    }
 
-   security_groups = [aws_security_group.sg_aula_iac.name, "default"]
+   key_name = "aula_iac"
+
+    subnet_id = aws_subnet.subnet_pri.id
+
+    associate_public_ip_address = false
+}
+
+
+resource "aws_instance" "ec2_iac_pub_ex1" {
+   ami = "ami-0e86e20dae9224db8"
+   instance_type = "t2.micro"
+
+   tags = {
+     Name= "ec2_iac_pub_ex1"
+   }
+
+   ebs_block_device {
+     device_name = "/dev/sda1"
+     volume_size = 30
+     volume_type = "gp3"
+   }
 
    key_name = "aula_iac"
 
-    // caso queira indicar uma subnet da AWS
-    #  subnet_id = "id de vpc exixtente"
+    subnet_id = aws_subnet.subnet_pub.id
 
-    // assim é caso queira indicar uma subnet criada em arquivos .tf
-    subnet_id = aws_subnet.minha_subrede.id
+    associate_public_ip_address = true
 }
 
-variable "porta_http" {
-  description = "porta http"
-  default = 80
-  type = number
-}
+resource "aws_subnet" "subnet_pri" {
+  vpc_id = "vpc-006c7f6d131bb94f1"
+  cidr_block = "10.0.2.0/24"
 
-resource "aws_security_group" "sg_aula_iac" {
-  name = "sg_aula_iac"
-
-  ingress {
-    from_port   = 22
-    to_port     = 22
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
+  tags = {
+    Name: "subnet_pri",
   }
 }
 
-resource "aws_subnet" "minha_subrede" {
-  vpc_id = "id da vpc"
-  cidr_block = "10.10.10.0/24"
+resource "aws_subnet" "subnet_pub" {
+  vpc_id = "vpc-006c7f6d131bb94f1"
+  cidr_block = "10.0.1.0/24"
+  map_public_ip_on_launch = true
+
+  tags = {
+    Name: "subnet_pub",
+  }
+}
+
+resource "aws_vpc" "vpc_aula" {
+  cidr_block = "10.0.0.0/16"
+  tags = {
+    Name = "vpc_aula"
+  }
 }
